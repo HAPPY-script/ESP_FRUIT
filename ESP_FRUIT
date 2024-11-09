@@ -60,7 +60,7 @@ end
 local function createNotification(fruit)
     local notification = Instance.new("ScreenGui", player.PlayerGui)
     local frame = Instance.new("Frame", notification)
-    frame.Size = UDim2.new(0, 250, 0, 80)  -- Kích thước nhỏ hơn
+    frame.Size = UDim2.new(0, 250, 0, 80)
     frame.Position = UDim2.new(1, -270, 0.5, -40)
     frame.BackgroundTransparency = 0.3
     frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
@@ -90,7 +90,8 @@ local function createNotification(fruit)
 
     pickButton.MouseButton1Click:Connect(function()
         if fruit and fruit.Parent then
-            player.Character.HumanoidRootPart.CFrame = fruit.CFrame
+            local fruitPosition = fruit:IsA("Tool") and fruit:FindFirstChild("Handle") and fruit.Handle.Position or fruit.Position
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(fruitPosition)
         end
     end)
 
