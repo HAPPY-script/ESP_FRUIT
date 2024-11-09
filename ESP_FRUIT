@@ -1,0 +1,104 @@
+
+local player = game.Players.LocalPlayer
+local workspace = game.Workspace
+local espFolder = Instance.new("Folder", player.PlayerGui)
+espFolder.Name = "FruitESPFolder"
+
+
+local fruitNames = {
+    "Rocket Fruit", "Spin Fruit", "Chop Fruit", "Spring Fruit", "Bomb Fruit",
+    "Smoke Fruit", "Spike Fruit", "Flame Fruit", "Flacon Fruit", "Ice Fruit",
+    "Sand Fruit", "Dark Fruit", "Diamond Fruit", "Light Fruit", "Rubber Fruit",
+    "Barrier Fruit", "Ghost Fruit", "Magma Fruit", "Quake Fruit", "Buddha Fruit",
+    "Love Fruit", "Spider Fruit", "Sound Fruit", "Phoenix Fruit", "Portal Fruit",
+    "Rumble Fruit", "Pain Fruit", "Blizzard Fruit", "Gravity Fruit", "Mammoth Fruit",
+    "T-Rex Fruit", "Dough Fruit", "Shadow Fruit", "Venom Fruit", "Control Fruit",
+    "Spirit Fruit", "Dragon Fruit", "Leopard Fruit", "Kitsune Fruit"
+}
+
+
+local function isFruit(item)
+    for _, fruitName in ipairs(fruitNames) do
+        if item.Name:match(fruitName) then
+            return true
+        end
+    end
+    return false
+end
+
+
+local function createESP(item)
+    
+    if espFolder:FindFirstChild(item.Name) then return end
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = item.Name 
+    billboard.Adornee = item
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 2, 0)
+    billboard.AlwaysOnTop = true
+
+    local textLabel = Instance.new("TextLabel", billboard)
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    textLabel.TextStrokeTransparency = 0.5
+    textLabel.TextScaled = true
+
+    billboard.Parent = espFolder
+
+    
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if item.Parent then
+            local position = item:IsA("Tool") and item:FindFirstChild("Handle") and item.Handle.Position or item.Position
+            local distance = (player.Character.HumanoidRootPart.Position - position).Magnitude
+            textLabel.Text = item.Name .. " | " .. math.floor(distance) .. "m"
+        else
+            
+            if billboard.Parent then
+                billboard:Destroy()
+            end
+        end
+    end)
+end
+
+
+local function onFruitDetected(item)
+    
+    local position = item:IsA("Tool") and item:FindFirstChild("Handle") and item.Handle.Position or item.Position
+    local distance = (player.Character.HumanoidRootPart.Position - position).Magnitude
+
+    
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "PHÁT HIỆN FRUIT";
+        Text = "Cách bạn (" .. math.floor(distance) .. "m)";
+        Duration = 5;
+    })
+
+    
+    createESP(item)
+end
+
+
+workspace.DescendantAdded:Connect(function(descendant)
+    if descendant:IsA("Tool") or descendant:IsA("Part") then
+        if isFruit(descendant) then
+            onFruitDetected(descendant)
+        end
+    end
+end)
+
+
+workspace.DescendantRemoving:Connect(function(descendant)
+    if descendant:IsA("Tool") or descendant:IsA("Part") then
+        if isFruit(descendant) then
+            
+            local espItem = espFolder:FindFirstChild(descendant.Name)
+            if espItem then
+                espItem:Destroy()
+            end
+        end
+    end
+end)
+
+print("Script ESP Fruit đã chạy thành công.")
