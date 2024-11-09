@@ -1,9 +1,7 @@
-
 local player = game.Players.LocalPlayer
 local workspace = game.Workspace
 local espFolder = Instance.new("Folder", player.PlayerGui)
 espFolder.Name = "FruitESPFolder"
-
 
 local fruitNames = {
     "Rocket Fruit", "Spin Fruit", "Chop Fruit", "Spring Fruit", "Bomb Fruit",
@@ -16,6 +14,7 @@ local fruitNames = {
     "Spirit Fruit", "Dragon Fruit", "Leopard Fruit", "Kitsune Fruit"
 }
 
+local activeFruit
 
 local function isFruit(item)
     for _, fruitName in ipairs(fruitNames) do
@@ -26,9 +25,7 @@ local function isFruit(item)
     return false
 end
 
-
 local function createESP(item)
-    
     if espFolder:FindFirstChild(item.Name) then return end
 
     local billboard = Instance.new("BillboardGui")
@@ -47,14 +44,12 @@ local function createESP(item)
 
     billboard.Parent = espFolder
 
-    
     game:GetService("RunService").RenderStepped:Connect(function()
         if item.Parent then
             local position = item:IsA("Tool") and item:FindFirstChild("Handle") and item.Handle.Position or item.Position
             local distance = (player.Character.HumanoidRootPart.Position - position).Magnitude
             textLabel.Text = item.Name .. " | " .. math.floor(distance) .. "m"
         else
-            
             if billboard.Parent then
                 billboard:Destroy()
             end
@@ -62,23 +57,75 @@ local function createESP(item)
     end)
 end
 
+local function createNotification(fruit)
+    local notification = Instance.new("ScreenGui", player.PlayerGui)
+    local frame = Instance.new("Frame", notification)
+    frame.Size = UDim2.new(0, 250, 0, 80)  -- Kích thước nhỏ hơn
+    frame.Position = UDim2.new(1, -270, 0.5, -40)
+    frame.BackgroundTransparency = 0.3
+    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    frame.BorderSizePixel = 0
 
-local function onFruitDetected(item)
-    
-    local position = item:IsA("Tool") and item:FindFirstChild("Handle") and item.Handle.Position or item.Position
-    local distance = (player.Character.HumanoidRootPart.Position - position).Magnitude
+    local title = Instance.new("TextLabel", frame)
+    title.Text = "PHÁT HIỆN FRUIT"
+    title.Size = UDim2.new(1, 0, 0.4, 0)
+    title.TextScaled = true
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.BackgroundTransparency = 1
 
-    
-    game.StarterGui:SetCore("SendNotification", {
-        Title = "PHÁT HIỆN FRUIT";
-        Text = "Cách bạn (" .. math.floor(distance) .. "m)";
-        Duration = 5;
-    })
+    local distanceLabel = Instance.new("TextLabel", frame)
+    distanceLabel.Size = UDim2.new(1, 0, 0.3, 0)
+    distanceLabel.Position = UDim2.new(0, 0, 0.4, 0)
+    distanceLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    distanceLabel.BackgroundTransparency = 1
+    distanceLabel.TextScaled = true
 
-    
-    createESP(item)
+    local pickButton = Instance.new("TextButton", frame)
+    pickButton.Size = UDim2.new(0.5, 0, 0.3, 0)
+    pickButton.Position = UDim2.new(0.25, 0, 0.7, 0)
+    pickButton.Text = "Nhặt"
+    pickButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+    pickButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    pickButton.TextScaled = true
+
+    pickButton.MouseButton1Click:Connect(function()
+        if fruit and fruit.Parent then
+            player.Character.HumanoidRootPart.CFrame = fruit.CFrame
+        end
+    end)
+
+    local function updateDistance()
+        if fruit and fruit.Parent then
+            local position = fruit:IsA("Tool") and fruit:FindFirstChild("Handle") and fruit.Handle.Position or fruit.Position
+            local distance = (player.Character.HumanoidRootPart.Position - position).Magnitude
+            distanceLabel.Text = "Cách bạn (" .. math.floor(distance) .. "m)"
+        else
+            notification:Destroy()
+        end
+    end
+
+    game:GetService("RunService").RenderStepped:Connect(updateDistance)
+
+    delay(10, function()
+        if notification and notification.Parent then
+            notification:Destroy()
+        end
+    end)
+
+    frame:TweenPosition(UDim2.new(1, -250, 0.5, -40), Enum.EasingDirection.InOut, Enum.EasingStyle.Sine, 0.5, true, function()
+        if not fruit or not fruit.Parent then
+            frame:TweenPosition(UDim2.new(1, 20, 0.5, -40), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.3, true, function()
+                notification:Destroy()
+            end)
+        end
+    end)
 end
 
+local function onFruitDetected(item)
+    activeFruit = item
+    createNotification(item)
+    createESP(item)
+end
 
 workspace.DescendantAdded:Connect(function(descendant)
     if descendant:IsA("Tool") or descendant:IsA("Part") then
@@ -88,11 +135,10 @@ workspace.DescendantAdded:Connect(function(descendant)
     end
 end)
 
-
 workspace.DescendantRemoving:Connect(function(descendant)
     if descendant:IsA("Tool") or descendant:IsA("Part") then
-        if isFruit(descendant) then
-            
+        if isFruit(descendant) and descendant == activeFruit then
+            activeFruit = nil
             local espItem = espFolder:FindFirstChild(descendant.Name)
             if espItem then
                 espItem:Destroy()
