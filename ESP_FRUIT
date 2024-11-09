@@ -107,7 +107,7 @@ local function createNotification(fruit)
 
     game:GetService("RunService").RenderStepped:Connect(updateDistance)
 
-    delay(10, function()
+    delay(17, function()
         if notification and notification.Parent then
             notification:Destroy()
         end
