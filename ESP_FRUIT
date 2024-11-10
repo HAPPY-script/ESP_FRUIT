@@ -166,6 +166,22 @@ local function createNotification(fruit)
     end)
 end
 
+-- Lắng nghe sự kiện hồi sinh
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    torso = character:WaitForChild("HumanoidRootPart")
+    
+    -- Sau khi hồi sinh, cần phải tìm lại trái cây gần đó nếu có
+    for _, descendant in pairs(workspace:GetDescendants()) do
+        if isFruit(descendant) then
+            activeFruit = descendant
+            createNotification(descendant)
+            createESP(descendant)
+        end
+    end
+end)
+
 workspace.DescendantAdded:Connect(function(descendant)
     if descendant:IsA("Tool") or descendant:IsA("Part") then
         if isFruit(descendant) then
