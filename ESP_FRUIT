@@ -1,5 +1,7 @@
 local player = game.Players.LocalPlayer
-local workspace = game.Workspace
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local torso = character:WaitForChild("HumanoidRootPart")
 local espFolder = Instance.new("Folder", player.PlayerGui)
 espFolder.Name = "FruitESPFolder"
 
@@ -25,12 +27,54 @@ local function isFruit(item)
     return false
 end
 
-local function createESP(item)
-    if espFolder:FindFirstChild(item.Name) then return end
+local function createBlock()
+    local block = Instance.new("Part")
+    block.Size = Vector3.new(5, 1, 5)
+    block.Anchored = true
+    block.Transparency = 0.5
+    block.BrickColor = BrickColor.new("Bright blue")
+    block.Parent = game.Workspace
+    return block
+end
+
+local function distance(pos1, pos2)
+    return (pos1 - pos2).Magnitude
+end
+
+local function updateFruitPosition(fruit)
+    return fruit:IsA("Tool") and fruit:FindFirstChild("Handle") and fruit.Handle.Position or fruit.Position
+end
+
+local function teleportToFruit(fruit)
+    humanoidRootPart.CFrame = humanoidRootPart.CFrame + Vector3.new(0, 300, 0)
+    wait(0.2)
+
+    local block = createBlock()
+
+    while fruit and fruit.Parent do
+        local fruitPosition = updateFruitPosition(fruit)
+        local distanceToFruit = distance(humanoidRootPart.Position, fruitPosition)
+
+        if distanceToFruit > 70 then
+            local direction = (fruitPosition - humanoidRootPart.Position).unit
+            humanoidRootPart.CFrame = humanoidRootPart.CFrame + direction * 70
+            block.Position = humanoidRootPart.Position - Vector3.new(0, 3, 0)
+            wait(0.2)
+        else
+            humanoidRootPart.CFrame = CFrame.new(fruitPosition) * CFrame.new(0, 5, 0)
+            break
+        end
+    end
+
+    block:Destroy()
+end
+
+local function createESP(fruit)
+    if espFolder:FindFirstChild(fruit.Name) then return end
 
     local billboard = Instance.new("BillboardGui")
-    billboard.Name = item.Name 
-    billboard.Adornee = item
+    billboard.Name = fruit.Name 
+    billboard.Adornee = fruit
     billboard.Size = UDim2.new(0, 200, 0, 50)
     billboard.StudsOffset = Vector3.new(0, 2, 0)
     billboard.AlwaysOnTop = true
@@ -45,35 +89,16 @@ local function createESP(item)
     billboard.Parent = espFolder
 
     game:GetService("RunService").RenderStepped:Connect(function()
-        if item.Parent then
-            local position = item:IsA("Tool") and item:FindFirstChild("Handle") and item.Handle.Position or item.Position
+        if fruit.Parent then
+            local position = updateFruitPosition(fruit)
             local distance = (player.Character.HumanoidRootPart.Position - position).Magnitude
-            textLabel.Text = item.Name .. " | " .. math.floor(distance) .. "m"
+            textLabel.Text = fruit.Name .. " | " .. math.floor(distance) .. "m"
         else
             if billboard.Parent then
                 billboard:Destroy()
             end
         end
     end)
-end
-
-local function tpToFruit(fruit)
-    local humanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart or not fruit or not fruit.Parent then return end
-
-    -- Cập nhật vị trí trái cây liên tục trong quá trình TP
-    while fruit and fruit.Parent do
-        local fruitPosition = fruit:IsA("Tool") and fruit:FindFirstChild("Handle") and fruit.Handle.Position or fruit.Position
-        local distance = (humanoidRootPart.Position - fruitPosition).Magnitude
-        
-        -- Di chuyển nhân vật sát vào vị trí của trái cây
-        if distance > 5 then  -- Khoảng cách đủ gần để ngừng TP
-            humanoidRootPart.CFrame = CFrame.new(fruitPosition + Vector3.new(0, 5, 0))
-        else
-            break
-        end
-        wait(0.1)
-    end
 end
 
 local function createNotification(fruit)
@@ -110,13 +135,13 @@ local function createNotification(fruit)
     pickButton.MouseButton1Click:Connect(function()
         if fruit and fruit.Parent then
             notification:Destroy()
-            tpToFruit(fruit)
+            teleportToFruit(fruit)
         end
     end)
 
     local function updateDistance()
         if fruit and fruit.Parent then
-            local position = fruit:IsA("Tool") and fruit:FindFirstChild("Handle") and fruit.Handle.Position or fruit.Position
+            local position = updateFruitPosition(fruit)
             local distance = (player.Character.HumanoidRootPart.Position - position).Magnitude
             distanceLabel.Text = "Cách bạn (" .. math.floor(distance) .. "m)"
         else
@@ -141,30 +166,18 @@ local function createNotification(fruit)
     end)
 end
 
-local function onFruitDetected(item)
-    activeFruit = item
-    createNotification(item)
-    createESP(item)
-end
-
 workspace.DescendantAdded:Connect(function(descendant)
     if descendant:IsA("Tool") or descendant:IsA("Part") then
         if isFruit(descendant) then
-            onFruitDetected(descendant)
+            activeFruit = descendant
+            createNotification(descendant)
+            createESP(descendant)
         end
     end
 end)
 
 workspace.DescendantRemoving:Connect(function(descendant)
-    if descendant:IsA("Tool") or descendant:IsA("Part") then
-        if isFruit(descendant) and descendant == activeFruit then
-            activeFruit = nil
-            local espItem = espFolder:FindFirstChild(descendant.Name)
-            if espItem then
-                espItem:Destroy()
-            end
-        end
+    if descendant == activeFruit then
+        activeFruit = nil
     end
 end)
-
-print("Script ESP Fruit đã chạy thành công.")
