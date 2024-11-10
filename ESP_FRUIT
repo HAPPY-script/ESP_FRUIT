@@ -151,7 +151,7 @@ local function createNotification(fruit)
 
     game:GetService("RunService").RenderStepped:Connect(updateDistance)
 
-    delay(17, function()
+    delay(20, function()
         if notification and notification.Parent then
             notification:Destroy()
         end
@@ -166,13 +166,13 @@ local function createNotification(fruit)
     end)
 end
 
--- Lắng nghe sự kiện hồi sinh
+
 player.CharacterAdded:Connect(function(newCharacter)
     character = newCharacter
     humanoidRootPart = character:WaitForChild("HumanoidRootPart")
     torso = character:WaitForChild("HumanoidRootPart")
     
-    -- Sau khi hồi sinh, cần phải tìm lại trái cây gần đó nếu có
+    
     for _, descendant in pairs(workspace:GetDescendants()) do
         if isFruit(descendant) then
             activeFruit = descendant
