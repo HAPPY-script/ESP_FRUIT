@@ -143,7 +143,7 @@ local function createNotification(fruit)
         if fruit and fruit.Parent then
             local position = updateFruitPosition(fruit)
             local distance = (player.Character.HumanoidRootPart.Position - position).Magnitude
-            distanceLabel.Text = "Cách bạn (" .. math.floor(distance) .. "m)"
+            distanceLabel.Text = "Distance (" .. math.floor(distance) .. "m)"
         else
             notification:Destroy()
         end
@@ -166,13 +166,7 @@ local function createNotification(fruit)
     end)
 end
 
-
-player.CharacterAdded:Connect(function(newCharacter)
-    character = newCharacter
-    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-    torso = character:WaitForChild("HumanoidRootPart")
-    
-    
+local function scanExistingFruits()
     for _, descendant in pairs(workspace:GetDescendants()) do
         if isFruit(descendant) then
             activeFruit = descendant
@@ -180,6 +174,19 @@ player.CharacterAdded:Connect(function(newCharacter)
             createESP(descendant)
         end
     end
+end
+
+
+scanExistingFruits()
+
+-- Lắng nghe sự kiện hồi sinh
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    torso = character:WaitForChild("HumanoidRootPart")
+    
+    
+    scanExistingFruits()
 end)
 
 workspace.DescendantAdded:Connect(function(descendant)
