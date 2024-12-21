@@ -1,9 +1,3 @@
-game.StarterGui:SetCore("SendNotification", {
-    Title = "ESP FRUIT";
-    Text = "Chế độ esp Fruit đã được kích hoạt";
-    Duration = 5;
-})
-
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
@@ -12,14 +6,7 @@ local espFolder = Instance.new("Folder", player.PlayerGui)
 espFolder.Name = "FruitESPFolder"
 
 local fruitNames = {
-    "Rocket Fruit", "Spin Fruit", "Chop Fruit", "Spring Fruit", "Bomb Fruit",
-    "Smoke Fruit", "Spike Fruit", "Flame Fruit", "Flacon Fruit", "Ice Fruit",
-    "Sand Fruit", "Dark Fruit", "Diamond Fruit", "Light Fruit", "Rubber Fruit",
-    "Barrier Fruit", "Ghost Fruit", "Magma Fruit", "Quake Fruit", "Buddha Fruit",
-    "Love Fruit", "Spider Fruit", "Sound Fruit", "Phoenix Fruit", "Portal Fruit",
-    "Rumble Fruit", "Pain Fruit", "Blizzard Fruit", "Gravity Fruit", "Mammoth Fruit",
-    "T-Rex Fruit", "Dough Fruit", "Shadow Fruit", "Venom Fruit", "Control Fruit",
-    "Spirit Fruit", "Dragon Fruit", "Leopard Fruit", "Kitsune Fruit"
+    "Fruit"
 }
 
 local activeFruit
